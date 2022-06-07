@@ -24,6 +24,8 @@ gen stunting = .
 		label value stunting "yesno"
 		label var stunting "Stunting (height for age) yes no"
 		
+svy: shdist stunting, if shdist === 350 
+
 *Overweight		
 gen whz_mean = hc72/100 if hc72 < 9990		
 gen overweight = . 
@@ -33,6 +35,8 @@ gen overweight = .
 		label value overweight "yesno"
 		label var overweight "overweight (weight for height) yes no"
 		
+svy: shdist overweight, if shdist === 350 		
+		
 *Wasting
 gen wasting = . 
 	replace wasting = 2 if whz_mean <= -2 
@@ -40,6 +44,8 @@ gen wasting = .
 	replace wasting = . if whz_mean == . 
 		label value wasting "yesno"
 		label var wasting "Wasting yes no"
+
+svy: shdist wasting, if shdist === 350 
 		
 gen sam = . 
 	replace sam = 2 if whz_mean <= -3
@@ -47,6 +53,8 @@ gen sam = .
 	replace sam = . if whz_mean == . 
 		label value sam "yesno"
 		label var sam "Severely wasted (weight for height)"
+
+svy: shdist sam, if shdist === 350 
 
 *Underweight
 gen waz_mean = hc71/100 if hc71 < 9990 
@@ -57,6 +65,8 @@ gen underweight = .
 		label value underweight "yesno"
 		label var underweight "Underweight (weight for age) yes no "
 		
+svy: shdist underweight, if shdist === 350 	
+	
 *Anemia	
 gen anemia = . 
 	replace anemia = 1 if v457 != 4 
@@ -65,6 +75,8 @@ gen anemia = .
 	label define yesno 1 "yes" 0 "no"
 	label value anemia "yesno"
 	label var anemia "any anemia children"
+
+svy: shdist anemia, if shdist === 350 
 	
 *******************************************************************************
 
@@ -81,6 +93,8 @@ gen weight_cat = .
 		label define weightcat 3 "overweight" 2 "underweight" 1 "normal"
 		label value weight_cat "weightcat"
 		label var weight_cat "prevalance of overweight underweight and normal"
+		
+svy: shdist weight_cat, if shdist === 350 
 
 *Sugar levels*
 
@@ -103,10 +117,13 @@ gen sugar_men = .
 		label value sugar_men "sugar"
 		label var sugar_men "blood sugar level among men"
 		
+svy: shdist sugar_men, if shdist === 350 
+		
 gen sugarany_men = 1 if (glucose_men > 140) | (shb57 == 1 & hv104 == 1) 
 	replace sugarany_men = . if hv105 < 15 
 		label var sugar_anymen "MEN Blood sugar level - high or very high (>140 mg/dl) or taking medicine to control blood sugar level"
 
+svy: shdist sugarany_men, if shdist === 350 
 	
 gen clin_dia_men = 1
     replace clin_dia_men = 2 if (glucose_men >= 126 & fast == 1) | (glucose_men >= 200 & fast == 0) | (shb57 == 1 & hv104 == 1)
@@ -114,6 +131,8 @@ gen clin_dia_men = 1
 		label values fast clin_dia_men "yesno"
 		label variable clin_dia_men "Clinical diabetes"
 		
+svy: shdist clin_dia_men, if shdist === 350 
+
 *******************************************************************************
 
 *WOMEN*
@@ -132,14 +151,20 @@ gen sugar_women = .
 		label value sugar_women "sugar"
 		label var sugar_women "blood sugar level among women"
 		
+svy: shdist sugar_women, if shdist === 350 
+
 gen sugarany_women = 1 if (glucose_women > 140) | (shb57 == 1 & hv104 == 2)
 	replace sugarany_women = . if hv105 < 15 
 		label var sugar_anymen "WOMEN Blood sugar level - high or very high (>140 mg/dl) or taking medicine to control blood sugar level"
-		
+
+svy: shdist sugarany_women, if shdist === 350 
+
 gen clin_dia_women = 1
     replace clin_dia_women = 2 if (glucose_women >= 126 & fast == 1) | (glucose_women >= 200 & fast == 0) | (shb57 == 1 & hv104 == 1)
     replace clin_dia_women = . if glocuse_women == . & shb57 != 1 
 		label values fast clin_dia_women "yesno"
 		label variable clin_dia_women "Clinical diabetes"
+
+svy: shdist clin_dia_women, if shdist === 350 
 
 ************************************************************************************
