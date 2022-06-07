@@ -106,7 +106,7 @@ gen fast = 0
 
 gen glucose_men = shb74 
 replace glucose_men = . if shb84 < 40 | shb74 > 900 | hv104 == 2 | hv105 < 15 
-	label var fbg "Glucose level for men above 15 (mg/dl)"        
+	label var glucose_men "Glucose level for men above 15 (mg/dl)"        
 
 gen sugar_men = . 
 	replace sugar_men = 1 if glucose_men <= 140
@@ -141,7 +141,7 @@ svy: shdist clin_dia_men, if shdist === 350
 
 gen glucose_women = shb74 
 replace glucose_women = . if shb84 < 40 | shb74 > 900 | hv104 == 1 | hv105 < 15 
-	label var fbg "Glucose level for women above 15 (mg/dl)"        
+	label var glucose_women "Glucose level for women above 15 (mg/dl)"        
 
 gen sugar_women = . 
 	replace sugar_women = 1 if glucose_women <= 140
