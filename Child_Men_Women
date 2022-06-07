@@ -1,0 +1,50 @@
+set maxvar 15000
+use "C:\Users\v1npandy\OneDrive - ANUVAAD SOLUTIONS LLP\NFHS5\Household Member Recode\IAPR7AFL.DTA"
+
+replace hv005 = hv005/.000001
+svyset [pweight = hv005], psu(hv001) strata(hv022) singleunit(centered)
+
+gen haz_mean = hc70/100 if hc70 < 9990
+
+gen stunting = . 
+	replace stunting = 2 if haz_mean <= -2 
+	replace stunting = 1 if haz_mean > -2
+	replace stunting = . if haz_mean == . 
+		label define yesno 2 "Yes" 1 "No"
+		label value stunting "yesno"
+		label var stunting "Stunting (height for age) yes no"
+		
+gen whz_mean = hc72/100 if hc72 < 9990		
+
+gen overweight = . 
+	replace overweight = 2 if whz_mean >= 2
+	replace overweight = 1 if whz_mean < 2 
+	replace overweight = . if whz_mean == . 
+		label value overweight "yesno"
+		label var overweight "overweight (weight for height) yes no"
+		
+gen wasting = . 
+	replace wasting = 2 if whz_mean <= -2 
+	replace wasting = 1 if whz_mean > -2
+	replace wasting = . if whz_mean == . 
+		label value wasting "yesno"
+		label var wasting "Wasting yes no"
+		
+gen sam = . 
+	replace sam = 2 if whz_mean <= -3
+	replace sam = 1 if whz_mean > -3 
+	replace sam = . if whz_mean == . 
+		label value sam "yesno"
+		label var sam "Severely wasted (weight for height)"
+
+gen waz_mean = hc71/100 if hc71 < 9990 
+
+gen underweight = . 
+	replace underweight = 2 if waz_mean <= -2 
+	replace underweight = 1 if waz_mean > -2 
+	replace underweight = . if waz_mean == . 
+		label value underweight "yesno"
+		label var underweight "Underweight (weight for age) yes no "
+	
+	
+svy: tab shdist stunting if shdist == 130 
