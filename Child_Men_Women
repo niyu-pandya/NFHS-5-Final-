@@ -82,34 +82,64 @@ gen weight_cat = .
 		label value weight_cat "weightcat"
 		label var weight_cat "prevalance of overweight underweight and normal"
 
-svyset [pweight = hv005], psu(hv001) strata(hv022) singleunit(centered)
 *Sugar levels*
+
+svyset [pweight = hv005], psu(hv001) strata(hv022) singleunit(centered)
+
+gen fast = 0
+	replace fast=1 if shb53 >= 8 & shb54 >= 8
+		label variable fast "No eating or drinking in past 8 hours"
+
+gen glucose_men = shb74 
+replace glucose_men = . if shb84 < 40 | shb74 > 900 | hv104 == 2 | hv105 < 15 
+	label var fbg "Glucose level for men above 15 (mg/dl)"        
+
 gen sugar_men = . 
-	replace sugar_men = 1 if shb74 >= 40 & shb74 <= 140
-	replace sugar_men = 2 if shb74 >= 141 & shb74 <= 160 
-	replace sugar_men = 3 if shb74 > 160 
-	replace sugar_men = . shb74 == . | shb74>900 | hv105 < 15 | hv104 == 2 
+	replace sugar_men = 1 if glucose_men <= 140
+	replace sugar_men = 2 if glucose_men >= 141 & glucose_men <= 160 
+	replace sugar_men = 3 if glucose_men > 160 
+	replace sugar_men = . if glucose_men == .
 		label define sugar 1 "normal" 2 "high" 3 "very high"
 		label value sugar_men "sugar"
 		label var sugar_men "blood sugar level among men"
 		
-gen sugarany_men = 1 if (shb74 > 140 | shb57 == 1) & (hv105 >=15 & hv104 == 1)
+gen sugarany_men = 1 if (glucose_men > 140) | (shb57 == 1 & hv104 == 1) 
+	replace sugarany_men = . if hv105 < 15 
 		label var sugar_anymen "MEN Blood sugar level - high or very high (>140 mg/dl) or taking medicine to control blood sugar level"
+
+	
+gen clin_dia_men = 1
+    replace clin_dia_men = 2 if (glucose_men >= 126 & fast == 1) | (glucose_men >= 200 & fast == 0) | (shb57 == 1 & hv104 == 1)
+    replace clin_dia_men = . if glocuse_men == . & shb57 != 1 
+		label values fast clin_dia_men "yesno"
+		label variable clin_dia_men "Clinical diabetes"
+		
 *******************************************************************************
 
 *WOMEN*
 
 *Sugar levels* 
+
+gen glucose_women = shb74 
+replace glucose_women = . if shb84 < 40 | shb74 > 900 | hv104 == 1 | hv105 < 15 
+	label var fbg "Glucose level for women above 15 (mg/dl)"        
+
 gen sugar_women = . 
-	replace sugar_women = 1 if shb74 >= 40 & shb74 <= 140
-	replace sugar_women = 2 if shb74 >= 141 & shb74 <= 160 
-	replace sugar_women = 3 if shb74 > 160 
-	replace sugar_women = . shb74 == . | shb74>900 | hv105 < 15 | hv104 == 1 
+	replace sugar_women = 1 if glucose_women <= 140
+	replace sugar_women = 2 if glucose_women >= 141 & glucose_women <= 160 
+	replace sugar_women = 3 if glucose_women > 160 
+	replace sugar_women = . if glucose_women == .  
 		label value sugar_women "sugar"
-		label var sugar_women "blood sugar level among men"
+		label var sugar_women "blood sugar level among women"
 		
-gen sugarany_women = 1 if (shb74 > 140 | shb57 == 1) & (hv105 >=15 & hv104 == 2)
+gen sugarany_women = 1 if (glucose_women > 140) | (shb57 == 1 & hv104 == 2)
+	replace sugarany_women = . if hv105 < 15 
 		label var sugar_anymen "WOMEN Blood sugar level - high or very high (>140 mg/dl) or taking medicine to control blood sugar level"
 		
-		
+gen clin_dia_women = 1
+    replace clin_dia_women = 2 if (glucose_women >= 126 & fast == 1) | (glucose_women >= 200 & fast == 0) | (shb57 == 1 & hv104 == 1)
+    replace clin_dia_women = . if glocuse_women == . & shb57 != 1 
+		label values fast clin_dia_women "yesno"
+		label variable clin_dia_women "Clinical diabetes"
+
 ************************************************************************************
