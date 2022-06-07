@@ -4,8 +4,10 @@ use "C:\Users\v1npandy\OneDrive - ANUVAAD SOLUTIONS LLP\NFHS5\Household Member R
 replace hv005 = hv005/.000001
 svyset [pweight = hv005], psu(hv001) strata(hv022) singleunit(centered)
 
-gen haz_mean = hc70/100 if hc70 < 9990
+*CHILDREN INDICATORS*
 
+*Stunting
+gen haz_mean = hc70/100 if hc70 < 9990
 gen stunting = . 
 	replace stunting = 2 if haz_mean <= -2 
 	replace stunting = 1 if haz_mean > -2
@@ -14,8 +16,8 @@ gen stunting = .
 		label value stunting "yesno"
 		label var stunting "Stunting (height for age) yes no"
 		
+*Overweight		
 gen whz_mean = hc72/100 if hc72 < 9990		
-
 gen overweight = . 
 	replace overweight = 2 if whz_mean >= 2
 	replace overweight = 1 if whz_mean < 2 
@@ -23,6 +25,7 @@ gen overweight = .
 		label value overweight "yesno"
 		label var overweight "overweight (weight for height) yes no"
 		
+*Wasting
 gen wasting = . 
 	replace wasting = 2 if whz_mean <= -2 
 	replace wasting = 1 if whz_mean > -2
@@ -37,14 +40,66 @@ gen sam = .
 		label value sam "yesno"
 		label var sam "Severely wasted (weight for height)"
 
+*Underweight
 gen waz_mean = hc71/100 if hc71 < 9990 
-
 gen underweight = . 
 	replace underweight = 2 if waz_mean <= -2 
 	replace underweight = 1 if waz_mean > -2 
 	replace underweight = . if waz_mean == . 
 		label value underweight "yesno"
 		label var underweight "Underweight (weight for age) yes no "
+		
+*Anemia	
+gen anemia = . 
+	replace anemia = 1 if v457 != 4 
+	replace anemia = 0 if v457 == 4 
+	replace anemia = . if v457 == . 
+	label define yesno 1 "yes" 0 "no"
+	label value anemia "yesno"
+	label var anemia "any anemia children"
 	
-	
-svy: tab shdist stunting if shdist == 130 
+*******************************************************************************
+
+*MEN*
+replace hv028 = hv028/.000001
+svyset [pweight = hv028], psu(hv001) strata(hv022) singleunit(centered)
+
+*Overweight, underweight
+gen weight_cat = . 
+	replace weight_cat = 3 if hb40 >= 2500 & hb40 <= 6000
+	replace weight_cat = 2 if hb40 >= 1200 & hb40 <= 1849 
+	replace weight_cat = 1 if hb40 >= 1850 & hb40 <= 2499
+	replace weight_cat = . if (hb40<1200 | hb40>=6000)
+		label define weightcat 3 "overweight" 2 "underweight" 1 "normal"
+		label value weight_cat "weightcat"
+		label var weight_cat "prevalance of overweight underweight and normal"
+
+svyset [pweight = hv005], psu(hv001) strata(hv022) singleunit(centered)
+*Sugar levels*
+gen sugar_men = . 
+	replace sugar_men = 1 if shb74 >= 40 & shb74 <= 140
+	replace sugar_men = 2 if shb74 >= 141 & shb74 <= 160 
+	replace sugar_men = 3 if shb74 > 160 
+	replace sugar_men = . shb74 == . | shb74>900 | hv105 < 15 | hv104 == 2 
+		label define sugar 1 "normal" 2 "high" 3 "very high"
+		label value sugar_men "sugar"
+		label var sugar_men "blood sugar level among men"
+		
+gen sugarany_men = 1 if (shb74 > 140 | shb57 == 1) & (hv105 >=15 & hv104 == 1)
+		label var sugar_anymen "MEN Blood sugar level - high or very high (>140 mg/dl) or taking medicine to control blood sugar level"
+*******************************************************************************
+
+*WOMEN*
+
+*Sugar levels* 
+gen sugar_women = . 
+	replace sugar_women = 1 if shb74 >= 40 & shb74 <= 140
+	replace sugar_women = 2 if shb74 >= 141 & shb74 <= 160 
+	replace sugar_women = 3 if shb74 > 160 
+	replace sugar_women = . shb74 == . | shb74>900 | hv105 < 15 | hv104 == 1 
+		label value sugar_women "sugar"
+		label var sugar_women "blood sugar level among men"
+		
+gen sugarany_women = 1 if (shb74 > 140 | shb57 == 1) & (hv105 >=15 & hv104 == 2)
+		label var sugar_anymen "WOMEN Blood sugar level - high or very high (>140 mg/dl) or taking medicine to control blood sugar level"
+
