@@ -1,10 +1,18 @@
+*********************************************************************************
+* This code has the following variables 					*
+* Children - Stunting, wasting, overweight, underweight, anemia, SAM (wasting)) *
+* Men - Overweight, underweight, blood sugar levels 				*
+* Women - Sugar levels 								*
+*********************************************************************************
+
+
 set maxvar 15000
 use "C:\Users\v1npandy\OneDrive - ANUVAAD SOLUTIONS LLP\NFHS5\Household Member Recode\IAPR7AFL.DTA"
 
 replace hv005 = hv005/.000001
 svyset [pweight = hv005], psu(hv001) strata(hv022) singleunit(centered)
 
-*CHILDREN INDICATORS*
+*CHILDREN*
 
 *Stunting
 gen haz_mean = hc70/100 if hc70 < 9990
@@ -102,4 +110,6 @@ gen sugar_women = .
 		
 gen sugarany_women = 1 if (shb74 > 140 | shb57 == 1) & (hv105 >=15 & hv104 == 2)
 		label var sugar_anymen "WOMEN Blood sugar level - high or very high (>140 mg/dl) or taking medicine to control blood sugar level"
-
+		
+		
+************************************************************************************
