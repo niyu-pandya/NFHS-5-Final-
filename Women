@@ -1,0 +1,51 @@
+******************************************************
+* This code has the following variables              *
+* Women - Anemia, Overweight, Underweight            *
+******************************************************
+
+clear
+cls
+set maxvar 15000
+use "C:\Users\v1npandy\OneDrive - ANUVAAD SOLUTIONS LLP\NFHS5\Individual Recode\IAIR7AFL.dta"
+
+replace v005 = v005/.000001
+svyset [pweight = v005], psu(v001) strata(v022) singleunit(centered)
+
+gen weight_cat = . 
+	replace weight_cat = 3 if v445 >= 2500 & v445 <= 6000
+	replace weight_cat = 2 if v445 >= 1200 & v445 <= 1849 
+	replace weight_cat = 1 if v445 >= 1850 & v445 <= 2499
+	replace weight_cat = . if v213 == 1 
+	replace weight_cat = . if b19_01<2 
+	replace weight_cat = . if (v445<=1200| v445>=6000)
+		label define weightcat 3 "overweight" 2 "underweight" 1 "normal"
+		label value weight_cat "weightcat"
+		label var weight_cat "prevalance of overweight underweight and normal"
+		
+svy: tab sdist weight_cat if sdist == 350
+		
+gen anemia = . 
+	replace anemia = 1 if v457 != 4 
+	replace anemia = 0 if v457 == 4 
+	replace anemia = . if v457 == . 
+		label define yesno 1 "yes" 0 "no"
+		label value anemia "yesno"
+		label var anemia "any anemia women 15-49"
+	
+gen anemia_preg = . 
+	replace anemia = 1 if v457 != 4 
+	replace anemia = 0 if v457 == 4 
+	replace anemia = . if v457 == . 
+	replace anemia = . if v213 == 0 
+		label value anemia_preg "yesno"
+		label var anemia_preg "any anemia pregnant women 15-49"
+	
+gen anemia_notpreg = . 
+	replace anemia = 1 if v457 != 4 
+	replace anemia = 0 if v457 == 4 
+	replace anemia = . if v457 == . 
+	replace anemia = . if v213 == 1 
+		label value anemia_preg "yesno"
+		label var anemia_preg "any anemia pregnant women 15-49"
+    
+   
