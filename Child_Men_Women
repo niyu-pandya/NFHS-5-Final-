@@ -69,9 +69,9 @@ svy: shdist underweight, if shdist === 350
 	
 *Anemia	
 gen anemia = . 
-	replace anemia = 1 if v457 != 4 
-	replace anemia = 0 if v457 == 4 
-	replace anemia = . if v457 == . 
+	replace anemia = 1 if hc57 != 4 
+	replace anemia = 0 if hc57 == 4 
+	replace anemia = . if hc57 == . 
 	label define yesno 1 "yes" 0 "no"
 	label value anemia "yesno"
 	label var anemia "any anemia children"
@@ -80,7 +80,7 @@ svy: shdist anemia, if shdist === 350
 	
 *******************************************************************************
 
-*MEN*
+*MEN* *FIX- Needs to be mens sample weight here* 
 replace hv028 = hv028/.000001
 svyset [pweight = hv028], psu(hv001) strata(hv022) singleunit(centered)
 
