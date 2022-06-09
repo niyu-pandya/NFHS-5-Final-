@@ -105,7 +105,7 @@ gen fast = 0
 		label variable fast "No eating or drinking in past 8 hours"
 
 gen glucose_men = shb74 
-replace glucose_men = . if shb84 < 40 | shb74 > 900 | hv104 == 2 | hv105 < 15 
+replace glucose_men = . if shb74 < 40 | shb74 > 900 | hv104 == 2 | hv105 < 15 
 	label var glucose_men "Glucose level for men above 15 (mg/dl)"        
 
 gen sugar_men = . 
@@ -140,7 +140,7 @@ svy: shdist clin_dia_men, if shdist === 350
 *Sugar levels* 
 
 gen glucose_women = shb74 
-replace glucose_women = . if shb84 < 40 | shb74 > 900 | hv104 == 1 | hv105 < 15 
+replace glucose_women = . if shb74 < 40 | shb74 > 900 | hv104 == 1 | hv105 < 15 
 	label var glucose_women "Glucose level for women above 15 (mg/dl)"        
 
 gen sugar_women = . 
