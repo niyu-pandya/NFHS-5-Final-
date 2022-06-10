@@ -1,0 +1,71 @@
+cls
+clear all 
+use "C:\Users\v1npandy\OneDrive - ANUVAAD SOLUTIONS LLP\NFHS5\Household Member Recode\IAPR7AFL.DTA"
+ 
+keep hv005 hv001 hv022 shdist hc70 hc72 hc71 hc57 hv042 hv103 hc1 hc55 hc57 hv028 hb40 shb74 hv104 hv105 shb53 shb54 shb74 shb57 hhid hvidx hv024 hc56 hv103 
+
+
+replace hv005 = hv005/.000001
+svyset [pweight = hv005], psu(hv001) strata(hv022) singleunit(centered)
+label define yesno 0"No" 1"Yes"
+
+*CHILDREN*
+
+*Stunting
+gen stunting = 0 if hv103 == 1 
+	replace stunting = 1 if hc70 < -200 & hv103 == 1 
+	replace stunting = . if hc70 >= 9996
+		label value stunting "yesno"
+		label var stunting "Stunting (height for age) yes no"
+		
+estpost svy: tabulate shdist stunting, row 
+
+
+*Overweight		
+gen overweight = 0 if hv103 == 1 
+	replace overweight = 1 if hc72 >=  200 & hc72 < 9996 & hv103 == 1 
+	replace overweight = . if hc72 >= 9996 
+		label value overweight "yesno"
+		label var overweight "overweight (weight for height) yes no"
+		
+estpost svy: tab shdist overweight, row 
+
+esttab using NFHSChildren.csv, cell(rowpct(fmt(2))) unstack noobs replace wide plain 
+		
+*Wasting
+gen wasting = 0 if hv103 == 1 
+	replace wasting = 1 if hc72 < -200 & hv103 == 1  
+	replace wasting = . if hc72 >= 9996 
+		label value wasting "yesno"
+		label var wasting "Wasting yes no"
+		
+estpost svy: tab shdist overweight, row 
+
+*Severe wasting  		
+gen sam = 0 if hv103 == 1 
+	replace sam = 1 if hc72 < -300 & hv103 == 1 
+	replace sam = . if hc72 >= 9996 
+		label value sam "yesno"
+		label var sam "Severely wasted (weight for height)"
+
+svy: tab shdist sam
+
+*Underweight 
+gen underweight = 0 if hv103 == 1  
+	replace underweight = 1 if hc71 < -200 & hv103 == 1  
+	replace underweight = . if hc71 >= 9996  
+		label value underweight "yesno"
+		label var underweight "Underweight (weight for age) yes no "
+		
+svy: tab shdist underweight 	
+	
+*Anemia	 CHECK  REDO 
+*My numbers for anemia are off for Palamu with my rate being 70.41 yes, and theirs being 68.2 yes. Maybe it has to do with altitude adjustment? 
+gen anemia = . 
+	replace anemia = 1 if hc57 != 4
+	replace anemia = 0 if hc57 == 4
+	replace anemia = . if hc57 == . 
+	label value anemia "yesno"
+	label var anemia "any anemia children"
+
+svy: tab shdist anemia
