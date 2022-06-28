@@ -1,0 +1,24 @@
+cls
+clear all 
+
+use "C:\Users\v1npandy\OneDrive - ANUVAAD SOLUTIONS LLP\NFHS5\Men's Recode\IAMR7AFL.DTA"
+
+replace hv028 = hv028/1000000
+svyset [pweight = hv028], psu(hv001) strata(hv022) singleunit(centered)
+
+*Overweight, underweight
+
+gen thin_men = inrange(hb40,1200,1849) if inrange(hb40,1200,6000)
+	label values thin_men yesno
+	label var thin_men "Thin BMI - men"
+	
+svy: tab shdist thin_men, row 
+esttab using NFHSUnderweight_Men.csv, cell("b(f(4))") unstack noobs replace wide plain 
+
+gen ovobese_men = inrange(hb40,2500,6000) if inrange(hb40,1200,6000)
+	label values ovobese_men yesno
+	label var ovobese_men "Overweight or obese BMI  - men"
+
+svy: tab shdist ovobese_men, row 
+esttab using NFHSOvObeset_Men.csv, cell("b(f(4))") unstack noobs replace wide plain 
+
