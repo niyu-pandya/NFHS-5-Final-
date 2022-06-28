@@ -51,7 +51,7 @@ gen sam = 0 if hv103 == 1
 		label value sam "yesno"
 		label var sam "Severely wasted (weight for height)"
 
-svy: tab shdist sam, row
+estpost svy: tab shdist sam, row
 esttab using NFHSSAM.csv, cell("b(f(4))") unstack noobs replace wide plain 
 
 *Underweight 
@@ -61,7 +61,7 @@ gen underweight = 0 if hv103 == 1
 		label value underweight "yesno"
 		label var underweight "Underweight (weight for age) yes no "
 		
-svy: tab shdist underweight, row
+estpost svy: tab shdist underweight, row
 esttab using NFHSUnderweight.csv, cell("b(f(4))") unstack noobs replace wide plain 
 	
 	
@@ -74,7 +74,7 @@ gen anemia = .
 	label value anemia "yesno"
 	label var anemia "any anemia children"
 
-svy: tab shdist anemia, row
+estpost svy: tab shdist anemia, row
 esttab using NFHSAnemia.csv, cell("b(f(4))") unstack noobs replace wide plain 
 
 import excel 
@@ -103,14 +103,14 @@ gen sugar_men = .
 		label value sugar_men "sugar"
 		label var sugar_men "blood sugar level among men"
 		
-svy: tab shdist sugar_men, row 
+estpost svy: tab shdist sugar_men, row 
 esttab using NFHSSugar_Men.csv, cell("b(f(4))") unstack noobs replace wide plain 		
 		
 gen sugarany_men = 1 if (glucose_men > 140) | (shb57 == 1 & hv104 == 1) 
 	replace sugarany_men = . if hv105 < 15 
 		label var sugar_anymen "MEN Blood sugar level - high or very high (>140 mg/dl) or taking medicine to control blood sugar level"
 
-svy: shdist sugarany_men, row
+estpost svy: shdist sugarany_men, row
 esttab using NFHSSugarAny_Men.csv, cell("b(f(4))") unstack noobs replace wide plain 		
 	
 gen clin_dia_men = 1
@@ -119,7 +119,7 @@ gen clin_dia_men = 1
 		label values fast clin_dia_men "yesno"
 		label variable clin_dia_men "Clinical diabetes"
 		
-svy: shdist clin_dia_men, row
+estpost svy: shdist clin_dia_men, row
 esttab using NFHSDiabetes_Men.csv, cell("b(f(4))") unstack noobs replace wide plain 		
 
 ***************************************************************
@@ -140,14 +140,14 @@ gen sugar_women = .
 		label value sugar_women "sugar"
 		label var sugar_women "blood sugar level among women"
 		
-svy: tab shdist sugar_women, row 
+estpost svy: tab shdist sugar_women, row 
 esttab using NFHSSugar_women.csv, cell("b(f(4))") unstack noobs replace wide plain 		
 	
 gen sugarany_women = 1 if (glucose_women > 140) | (shb57 == 1 & hv104 == 2)
 	replace sugarany_women = . if hv105 < 15 
 		label var sugar_anymen "WOMEN Blood sugar level - high or very high (>140 mg/dl) or taking medicine to control blood sugar level"
 
-svy: shdist sugarany_women, row 
+estpost svy: shdist sugarany_women, row 
 esttab using NFHSSugarAny_Women.csv, cell("b(f(4))") unstack noobs replace wide plain 		
 
 
@@ -157,7 +157,7 @@ gen clin_dia_women = 1
 		label values fast clin_dia_women "yesno"
 		label variable clin_dia_women "Clinical diabetes"
 		
-svy: shdist clin_dia_women, row
+estpost svy: shdist clin_dia_women, row
 esttab using NFHSDiabetes_Women_preg.csv, cell("b(f(4))") unstack noobs replace wide plain 		
 
 gen clin_dia_women_nonpreg = 1
@@ -166,7 +166,7 @@ gen clin_dia_women_nonpreg = 1
 		label values fast clin_dia_women "yesno"
 		label variable clin_dia_women "Clinical diabetes"
 
-svy: shdist clin_dia_women_nonpreg, row
+estpost svy: shdist clin_dia_women_nonpreg, row
 esttab using NFHSDiabetes_Women_nonpreg.csv, cell("b(f(4))") unstack noobs replace wide plain 			
 
 ************************************************************************************
