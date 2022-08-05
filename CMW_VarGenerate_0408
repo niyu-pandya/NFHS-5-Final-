@@ -10,56 +10,56 @@ keep hv005 hv001 hv021 hv022 shdist hc70 hc72 hc71 hc57 hv042 hv103 hc1 hc55 hc5
 
 replace hv005 = hv005/1000000
 svyset [pweight = hv005], psu(hv021) strata(hv022) singleunit(centered)
-label define yesno 0"No" 1"Yes"
+label define yesno 1 "No" 2 "Yes"
 
 *CHILDREN*
 
 *Stunting
-gen stunting = 0 if hv103 == 1 & hc1<60
-	replace stunting = 1 if hc70 < -200 & hv103 == 1 
+gen stunting = 1 if hv103 == 1 & hc1<60
+	replace stunting = 2 if hc70 < -200 & hv103 == 1 
 	replace stunting = . if hc70 >= 9996
 		label value stunting "yesno"
 		label var stunting "Stunting (height for age) yes no"
 		
 *Overweight		
-gen overweight = 0 if hv103 == 1 & hc1<60
-	replace overweight = 1 if hc72 >  200 & hc72 < 9996 & hv103 == 1 
+gen overweight = 1 if hv103 == 1 & hc1<60
+	replace overweight = 2 if hc72 >  200 & hc72 < 9996 & hv103 == 1 
 	replace overweight = . if hc72 >= 9996 
 		label value overweight "yesno"
 		label var overweight "overweight (weight for height) yes no"
 				
 *Wasting
-gen wasting = 0 if hv103 == 1 & hc1<60
-	replace wasting = 1 if hc72 < -200 & hv103 == 1  
+gen wasting = 1 if hv103 == 1 & hc1<60
+	replace wasting = 2 if hc72 < -200 & hv103 == 1  
 	replace wasting = . if hc72 >= 9996 
 		label value wasting "yesno"
 		label var wasting "Wasting yes no"
 		
 *Severe wasting  		
-gen sam = 0 if hv103 == 1 & hc1<60
-	replace sam = 1 if hc72 < -300 & hv103 == 1 
+gen sam = 1 if hv103 == 1 & hc1<60
+	replace sam = 2 if hc72 < -300 & hv103 == 1 
 	replace sam = . if hc72 >= 9996 
 		label value sam "yesno"
 		label var sam "Severely wasted (weight for height)"
 
 *Underweight 
-gen underweight = 0 if hv103 == 1 & hc1<60
-	replace underweight = 1 if hc71 < -200 & hv103 == 1  
+gen underweight = 1 if hv103 == 1 & hc1<60
+	replace underweight = 2 if hc71 < -200 & hv103 == 1  
 	replace underweight = . if hc71 >= 9996  
 		label value underweight "yesno"
 		label var underweight "Underweight (weight for age) yes no "
 		
 *Anemia	 CHECK  REDO 
 gen anemia = . if hc1>5 & hc1<60
-	replace anemia = 1 if hc57 != 4
-	replace anemia = 0 if hc57 == 4
+	replace anemia = 2 if hc57 != 4
+	replace anemia = 1 if hc57 == 4
 	replace anemia = . if hc57 == . 
 	label value anemia "yesno"
 	label var anemia "any anemia children"
 	
 *alternatively, here is the DHS's code. 	
-gen nt_ch_any_anem=0 if hv103==1 & hc1>5 & hc1<60
-	replace nt_ch_any_anem=1 if hc56<110 & hv103==1 & hc1>5 & hc1<60
+gen nt_ch_any_anem= 1 if hv103==1 & hc1>5 & hc1<60
+	replace nt_ch_any_anem= 2 if hc56<110 & hv103==1 & hc1>5 & hc1<60
 	replace nt_ch_any_anem=. if hc56==.
 	label values nt_ch_any_anem yesno
 	label var nt_ch_any_anem "Any anemia - child 6-59 months"
@@ -93,31 +93,43 @@ gen sugar_men = .
 
 *SUGAR IN MEN HIGH/TAKING MEDS		
 gen sugarany_men = . 
-replace sugarany_men = 1 if (glucose_men > 140) | (shb57 == 1) 
-replace sugarany_men = 0 if (glucose_men < 140 & shb57 == 0)
+replace sugarany_men = 2 if (glucose_men > 140) | (shb57 == 1) 
+replace sugarany_men = 1 if (glucose_men < 140 & shb57 == 0)
 	replace sugarany_men = . if hv105 < 15 | hv104 != 1 | (shb57 == . & glucose_men == .)
 		label val sugarany_men "yesno"
 		label var sugarany_men "MEN Blood sugar level - high or very high (>140 mg/dl) or taking medicine to control blood sugar level"
 			
 *DIABETES IN MEN	
-gen clin_dia_men = 0
-    replace clin_dia_men = 1 if (glucose_men >= 126 & fast == 1) | (glucose_men >= 200 & fast == 0) | (shb57 == 1 & hv104 == 1)
+gen clin_dia_men = 1
+    replace clin_dia_men = 2 if (glucose_men >= 126 & fast == 1) | (glucose_men >= 200 & fast == 0) | (shb57 == 1 & hv104 == 1)
     replace clin_dia_men = . if glucose_men == . & shb57 != 1 
 		label values fast clin_dia_men "yesno"
 		label variable clin_dia_men "Clinical diabetes"
 		
 
-*UNDERWEIGHT MEN
-gen thin_men = inrange(hb40,1200,1849) if inrange(hb40,1200,6000)
+*UNDERWEIGHT MEN 
+gen thin_men_dum = inrange(hb40,1200,1849) if inrange(hb40,1200,6000)
+	label var thin_men_dum "Thin BMI - men dummy"
+
+gen thin_men = . 
+	replace thin_men = 1 if thin_men_dum == 0
+	replace thin_men = 2 if thin_men_dum == 1
 	label value thin_men yesno
 	label var thin_men "Thin BMI - men"
 	
+drop thin_men_dum	
 
 *OVERWEIGHT MEN
-gen ovobese_men = inrange(hb40,2500,6000) if inrange(hb40,1200,6000)
+gen ovobese_men_dum = inrange(hb40,2500,6000) if inrange(hb40,1200,6000)
+	label var ovobese_men_dum "Overweight or obese BMI  - men dummy"
+	
+gen ovobese_men = . 
+	replace ovobese_men = 1 if ovobese_men_dum == 0 
+	replace ovobese_men = 2 if ovobese_men_dum == 1
 	label values ovobese_men yesno
 	label var ovobese_men "Overweight or obese BMI  - men"
 
+drop ovobese_men_dum
 ***************************************************************
 
 *WOMEN*
@@ -141,23 +153,23 @@ gen sugar_women = .
 		
 *SUGAR IN WOMEN HIGH/TAKING MEDS		
 gen sugarany_women = . 
-	replace sugarany_women = 1 if (glucose_women > 140) | (shb57 == 1) 
-	replace sugarany_women = 0 if (glucose_women < 140 & shb57 == 0)
+	replace sugarany_women = 2 if (glucose_women > 140) | (shb57 == 1) 
+	replace sugarany_women = 1 if (glucose_women < 140 & shb57 == 0)
 		replace sugarany_women = . if hv105 < 15 | hv104 == 1 | (shb57 == . & glucose_women == .)
 			label val sugarany_women "yesno"
 			label var sugarany_women "WOMEN Blood sugar level - high or very high (>140 mg/dl) or taking medicine to control blood sugar level"
 			
 *DIABETES IN WOMEN (ALL)
-gen clin_dia_women = 0
-    replace clin_dia_women = 1 if (glucose_women >= 126 & fast == 1) | (glucose_women >= 200 & fast == 0) | (shb57 == 1 & hv104 == 2)
+gen clin_dia_women = 1
+    replace clin_dia_women = 2 if (glucose_women >= 126 & fast == 1) | (glucose_women >= 200 & fast == 0) | (shb57 == 1 & hv104 == 2)
     replace clin_dia_women = . if glucose_women == . & shb57 != 1 
 		label values fast clin_dia_women "yesno"
 		label variable clin_dia_women "Clinical diabetes"
 			
 
 *DIABETES IN NON-PREGNANT WOMEN
-gen clin_dia_women_nonpreg = 0
-    replace clin_dia_women = 1 if (glucose_women >= 126 & fast == 1) | (glucose_women >= 200 & fast == 0) | (shb57 == 1 & hv104 == 1)
+gen clin_dia_women_nonpreg = 1
+    replace clin_dia_women = 2 if (glucose_women >= 126 & fast == 1) | (glucose_women >= 200 & fast == 0) | (shb57 == 1 & hv104 == 1)
     replace clin_dia_women = . if glucose_women == . & shb57 != 1 | ha54 == 1
 		label values fast clin_dia_women "yesno"
 		label variable clin_dia_women "Clinical diabetes"
@@ -178,39 +190,52 @@ keep v005 v001 v022 v008 b3_01 v213 v445 v042 v455 v457 sdist
 replace v005 = v005/100000
 svyset [pweight = v005], psu(v001) strata(v022) singleunit(centered)
 
-keep in 1/20000
-
 * age of most recent child
 gen age = v008 - b3_01
 
 * UNDERWEIGHT
-gen thin_women = inrange(v445,1200,1849) if inrange(v445,1200,6000)
-	replace thin_women=. if (v213==1 | age<2)
+gen thin_women_dum = inrange(v445,1200,1849) if inrange(v445,1200,6000)
+	replace thin_women_dum = . if (v213==1 | age<2)
 		label values thin_women yesno
-		label var thin_women "Thin BMI - women"
+		label var thin_women_dum "Thin BMI - women dummy"
+		
+gen thin_women = . 
+	replace thin_women = 1 if thin_women_dum == 0
+	replace thin_women = 2 if thin_women_dum == 1 
+	label values thin_women yesno
+	label var thin_women "Thin BMI - women "
+	
+drop thin_women_dum	
 
 *OVERWEIGHT
-gen ovobese_women = inrange(v445,2500,6000) if inrange(v445,1200,6000)
-	replace ovobese_women =. if (v213==1 | age<2)
+gen ovobese_women_dum = inrange(v445,2500,6000) if inrange(v445,1200,6000)
+	replace ovobese_women_dum =. if (v213==1 | age<2)
+		label var ovobese_women_dum "Overweight or obese BMI  - women Dummy"
+
+gen ovobese_women = . 
+	replace ovobese_women = 1 if ovobese_women_dum == 0
+	replace ovobese_women = 2 if ovobese_women_dum == 1
 		label values ovobese_women yesno
 		label var ovobese_women "Overweight or obese BMI  - women"
+		
+drop ovobese_women_dum 		
 
 *ANEMIA
-gen anemia_women=0 if v042==1 & v455==0
-	replace anemia_women=1 if v457<4
+gen anemia_women=1 if v042==1 & v455==0
+	replace anemia_women=2 if v457<4
 		label values anemia_women yesno
 		label var anemia_women "Any anemia - women"
 		
 		
-gen anemia_preg = 0 if v042==1 & v455==0 
-	replace anemia_preg = 1 if v457 < 4  
+gen anemia_preg = 1 if v042==1 & v455==0 
+	replace anemia_preg = 2 if v457 < 4  
 	replace anemia_preg = . if v213 == 0 
 		label value anemia_preg "yesno"
 		label var anemia_preg "any anemia pregnant women 15-49"
 		
 	
-gen anemia_notpreg = 0 if v042==1 & v455==0 
-	replace anemia_notpreg = 1 if v457 < 4 
+gen anemia_notpreg = 1 if v042==1 & v455==0 
+	replace anemia_notpreg = 2 if v457 < 4 
 	replace anemia_notpreg = . if v213 == 1 
 		label value anemia_notpreg "yesno"
 		label var anemia_notpreg "any anemia pregnant women 15-49"	
