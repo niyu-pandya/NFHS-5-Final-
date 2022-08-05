@@ -1,0 +1,275 @@
+cls
+clear all 
+
+*PLEASE CHANGE THIS ACCORDING TO WHERE YOUR FILE IS LOCATED*
+*PLEASE CHANGE THE ADDRESS IN THE QUOTATION MARKS TO WHATEVER YOUR FILE ADDRESS IS*
+
+use "C:\Users\v1npandy\OneDrive - ANUVAAD SOLUTIONS LLP\NFHS5\Household Member Recode\IAPR7AFL.DTA"
+ 
+keep hv005 hv001 hv021 hv022 shdist hc70 hc72 hc71 hc57 hv042 hv103 hc1 hc55 hc56 hc57 hv028 hb40 shb74 hv104 hv105 shb53 shb54 shb74 shb57 hhid hvidx hv024 hc56 hv103 hv021 hv002 ha54
+
+replace hv005 = hv005/1000000
+svyset [pweight = hv005], psu(hv021) strata(hv022) singleunit(centered)
+label define yesno 0"No" 1"Yes"
+
+keep in 1/20000
+*CHILDREN*
+
+*Stunting
+gen stunting = 0 if hv103 == 1 & hc1<60
+	replace stunting = 1 if hc70 < -200 & hv103 == 1 
+	replace stunting = . if hc70 >= 9996
+		label value stunting "yesno"
+		label var stunting "Stunting (height for age) yes no"
+		
+estpost svy: tab shdist stunting, row
+esttab using NFHSStunting.csv, cell("b lb ub") unstack noobs replace wide plain 
+
+*Overweight		
+gen overweight = 0 if hv103 == 1 & hc1<60
+	replace overweight = 1 if hc72 >  200 & hc72 < 9996 & hv103 == 1 
+	replace overweight = . if hc72 >= 9996 
+		label value overweight "yesno"
+		label var overweight "overweight (weight for height) yes no"
+		
+estpost svy: tab shdist overweight, row 
+esttab using NFHSOverweight.csv, cell("b lb ub") unstack noobs replace wide plain 
+		
+*Wasting
+gen wasting = 0 if hv103 == 1 & hc1<60
+	replace wasting = 1 if hc72 < -200 & hv103 == 1  
+	replace wasting = . if hc72 >= 9996 
+		label value wasting "yesno"
+		label var wasting "Wasting yes no"
+		
+estpost svy: tab shdist wasting, row 
+esttab using NFHSWasting.csv, cell("b lb ub") unstack noobs replace wide plain 
+
+
+*Severe wasting  		
+gen sam = 0 if hv103 == 1 & hc1<60
+	replace sam = 1 if hc72 < -300 & hv103 == 1 
+	replace sam = . if hc72 >= 9996 
+		label value sam "yesno"
+		label var sam "Severely wasted (weight for height)"
+
+estpost svy: tab shdist sam, row
+esttab using NFHSSAM.csv, cell("b lb ub") unstack noobs replace wide plain 
+
+*Underweight 
+gen underweight = 0 if hv103 == 1 & hc1<60
+	replace underweight = 1 if hc71 < -200 & hv103 == 1  
+	replace underweight = . if hc71 >= 9996  
+		label value underweight "yesno"
+		label var underweight "Underweight (weight for age) yes no "
+		
+estpost svy: tab shdist underweight, row
+esttab using NFHSUnderweight.csv, cell("b lb ub") unstack noobs replace wide plain 
+	
+	
+*Anemia	 CHECK  REDO 
+gen anemia = . if hc1>5 & hc1<60
+	replace anemia = 1 if hc57 != 4
+	replace anemia = 0 if hc57 == 4
+	replace anemia = . if hc57 == . 
+	label value anemia "yesno"
+	label var anemia "any anemia children"
+
+estpost svy: tab shdist anemia, row
+esttab using NFHSAnemia.csv, cell("b lb ub") unstack noobs replace wide plain 	
+	
+*alternatively, here is the DHS's code. 	
+gen nt_ch_any_anem=0 if hv103==1 & hc1>5 & hc1<60
+	replace nt_ch_any_anem=1 if hc56<110 & hv103==1 & hc1>5 & hc1<60
+	replace nt_ch_any_anem=. if hc56==.
+	label values nt_ch_any_anem yesno
+	label var nt_ch_any_anem "Any anemia - child 6-59 months"
+
+estpost svy: tab shdist nt_ch_any_anem, row
+esttab using NFHSAnemia_DHS.csv, cell("b lb ub") unstack noobs replace wide plain 	
+		
+*******************************************************************************
+
+*MEN*
+
+*Sugar levels*
+svyset [pweight = hv005], psu(hv001) strata(hv022) singleunit(centered)
+
+gen fast = 0
+	replace fast=1 if shb53 >= 8 & shb54 >= 8
+		label variable fast "No eating or drinking in past 8 hours"
+
+gen glucose_men = shb74 
+replace glucose_men = . if shb74 < 40 | shb74 > 900 | hv104 != 1 | hv105 < 15 
+	label var glucose_men "Glucose level for men above 15 (mg/dl)"        
+
+*SUGAR LEVELS IN MEN	
+gen sugar_men = . 
+	replace sugar_men = 1 if glucose_men <= 140
+	replace sugar_men = 2 if glucose_men >= 141 & glucose_men <= 160 
+	replace sugar_men = 3 if glucose_men > 160 
+	replace sugar_men = . if glucose_men == .
+		label define sugar 1 "normal" 2 "high" 3 "very high"
+		label value sugar_men "sugar"
+		label var sugar_men "blood sugar level among men above 15"
+		
+estpost svy: tab shdist sugar_men, row 
+esttab using NFHSSugar_Men.csv, cell("b lb ub") unstack noobs replace wide plain 		
+
+
+*SUGAR IN MEN HIGH/TAKING MEDS		
+gen sugarany_men = . 
+replace sugarany_men = 1 if (glucose_men > 140) | (shb57 == 1) 
+replace sugarany_men = 0 if (glucose_men < 140 & shb57 == 0)
+	replace sugarany_men = . if hv105 < 15 | hv104 != 1 | (shb57 == . & glucose_men == .)
+		label val sugarany_men "yesno"
+		label var sugarany_men "MEN Blood sugar level - high or very high (>140 mg/dl) or taking medicine to control blood sugar level"
+			
+estpost svy: tab shdist sugarany_men, row
+esttab using NFHSSugarAny_Men.csv, cell("b lb ub") unstack noobs replace wide plain 		
+
+*DIABETES IN MEN	
+gen clin_dia_men = 0
+    replace clin_dia_men = 1 if (glucose_men >= 126 & fast == 1) | (glucose_men >= 200 & fast == 0) | (shb57 == 1 & hv104 == 1)
+    replace clin_dia_men = . if glucose_men == . & shb57 != 1 
+		label values fast clin_dia_men "yesno"
+		label variable clin_dia_men "Clinical diabetes"
+		
+estpost svy: tab shdist clin_dia_men, row
+esttab using NFHSDiabetes_Men.csv, cell("b lb ub") unstack noobs replace wide plain 
+
+
+*UNDERWEIGHT MEN
+gen thin_men = inrange(hb40,1200,1849) if inrange(hb40,1200,6000)
+	label value thin_men yesno
+	label var thin_men "Thin BMI - men"
+	
+estpost svy: tab shdist thin_men, row 
+esttab using NFHSUnderweight_Men.csv, cell("b lb ub") unstack noobs replace wide plain 
+
+
+*OVERWEIGHT MEN
+gen ovobese_men = inrange(hb40,2500,6000) if inrange(hb40,1200,6000)
+	label values ovobese_men yesno
+	label var ovobese_men "Overweight or obese BMI  - men"
+
+estpost svy: tab shdist ovobese_men, row 
+esttab using NFHSOvObeset_Men.csv, cell("b lb ub") unstack noobs replace wide plain 		
+
+***************************************************************
+
+*WOMEN*
+
+svyset [pweight = hv005], psu(hv001) strata(hv022) singleunit(centered)
+
+*Sugar levels* 
+
+gen glucose_women = shb74 
+replace glucose_women = . if shb74 < 40 | shb74 > 900 | hv104 != 2 | hv105 < 15 
+	label var glucose_women "Glucose level for women above 15 (mg/dl)"        
+
+*SUGAR LEVELS IN WOMEN	
+gen sugar_women = . 
+	replace sugar_women = 1 if glucose_women <= 140
+	replace sugar_women = 2 if glucose_women >= 141 & glucose_women <= 160 
+	replace sugar_women = 3 if glucose_women > 160 
+	replace sugar_women = . if glucose_women == .  
+		label value sugar_women "sugar"
+		label var sugar_women "blood sugar level among women"
+		
+estpost svy: tab shdist sugar_women, row 
+esttab using NFHSSugar_women.csv, cell("b lb ub") unstack noobs replace wide plain 		
+
+*SUGAR IN WOMEN HIGH/TAKING MEDS		
+gen sugarany_women = . 
+	replace sugarany_women = 1 if (glucose_women > 140) | (shb57 == 1) 
+	replace sugarany_women = 0 if (glucose_women < 140 & shb57 == 0)
+		replace sugarany_women = . if hv105 < 15 | hv104 == 1 | (shb57 == . & glucose_women == .)
+			label val sugarany_women "yesno"
+			label var sugarany_women "WOMEN Blood sugar level - high or very high (>140 mg/dl) or taking medicine to control blood sugar level"
+			
+
+estpost svy: tab shdist sugarany_women, row 
+esttab using NFHSSugarAny_Women.csv, cell("b lb ub") unstack noobs replace wide plain
+
+*DIABETES IN WOMEN (ALL)
+gen clin_dia_women = 0
+    replace clin_dia_women = 1 if (glucose_women >= 126 & fast == 1) | (glucose_women >= 200 & fast == 0) | (shb57 == 1 & hv104 == 2)
+    replace clin_dia_women = . if glucose_women == . & shb57 != 1 
+		label values fast clin_dia_women "yesno"
+		label variable clin_dia_women "Clinical diabetes"
+		
+estpost svy: tab shdist clin_dia_women, row
+esttab using NFHSDiabetes_Women_preg.csv, cell("b lb ub") unstack noobs replace wide plain 		
+
+*DIABETES IN NON-PREGNANT WOMEN
+gen clin_dia_women_nonpreg = 0
+    replace clin_dia_women = 1 if (glucose_women >= 126 & fast == 1) | (glucose_women >= 200 & fast == 0) | (shb57 == 1 & hv104 == 1)
+    replace clin_dia_women = . if glucose_women == . & shb57 != 1 | ha54 == 1
+		label values fast clin_dia_women "yesno"
+		label variable clin_dia_women "Clinical diabetes"
+
+estpost svy: tab shdist clin_dia_women_nonpreg, row
+esttab using NFHSDiabetes_Women_nonpreg.csv, cell("b lb ub") unstack noobs replace wide plain 			
+************************************************************************************
+
+clear all
+cls
+set maxvar 15000
+use "C:\Users\v1npandy\OneDrive - ANUVAAD SOLUTIONS LLP\NFHS5\Individual Recode\IAIR7AFL.dta"
+
+keep v005 v001 v022 v008 b3_01 v213 v445 v042 v455 v457 sdist
+
+replace v005 = v005/100000
+svyset [pweight = v005], psu(v001) strata(v022) singleunit(centered)
+
+keep in 1/20000
+
+* age of most recent child
+gen age = v008 - b3_01
+
+* UNDERWEIGHT
+gen thin_women = inrange(v445,1200,1849) if inrange(v445,1200,6000)
+	replace thin_women=. if (v213==1 | age<2)
+		label values thin_women yesno
+		label var thin_women "Thin BMI - women"
+
+estpost svy: tab sdist thin_women, row
+esttab using NFHSUnderweight_AnyWomen_DHS.csv, cell("b lb ub") unstack noobs replace wide plain 	
+
+*OVERWEIGHT
+gen ovobese_women = inrange(v445,2500,6000) if inrange(v445,1200,6000)
+	replace ovobese_women =. if (v213==1 | age<2)
+		label values ovobese_women yesno
+		label var ovobese_women "Overweight or obese BMI  - women"
+
+estpost svy: tab sdist ovobese_women, row
+esttab using NFHSOverweight_AnyWomen_DHS.csv, cell("b lb ub") unstack noobs replace wide plain 	
+
+*ANEMIA
+gen anemia_women=0 if v042==1 & v455==0
+	replace anemia_women=1 if v457<4
+		label values anemia_women yesno
+		label var anemia_women "Any anemia - women"
+		
+estpost svy: tab sdist anemia_women, row
+esttab using NFHSAnemia_AnyWomen_DHS.csv, cell("b lb ub") unstack noobs replace wide plain 	
+		
+gen anemia_preg = 0 if v042==1 & v455==0 
+	replace anemia_preg = 1 if v457 < 4  
+	replace anemia_preg = . if v213 == 0 
+		label value anemia_preg "yesno"
+		label var anemia_preg "any anemia pregnant women 15-49"
+		
+estpost svy: tab sdist anemia_preg, row
+esttab using NFHSAnemia_PregWomen_DHS.csv, cell("b lb ub") unstack noobs replace wide plain 			
+	
+gen anemia_notpreg == 0 if v042==1 & v455==0 
+	replace anemia_notpreg = 1 if v457 < 4 
+	replace anemia_notpreg = . if v213 == 1 
+		label value anemia_notpreg "yesno"
+		label var anemia_notpreg "any anemia pregnant women 15-49"	
+
+estpost svy: tab sdist anemia_notpreg, row
+esttab using NFHSAnemia_NotPregWomen_DHS.csv, cell("b lb ub") unstack noobs replace wide plain 	
+*************************************************************************************************
